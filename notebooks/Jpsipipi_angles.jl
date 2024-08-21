@@ -35,7 +35,7 @@ md"""
 """
 
 # ╔═╡ bcec80a1-5ba6-4db2-9699-3f972fac595f
-checklist = open(joinpath(@__DIR__, "encoding_checklist.json")) do io
+checklist = open(joinpath(@__DIR__, "..", "data", "encoding_checklist.json")) do io
     JSON.parse(io)
 end
 
