@@ -1,12 +1,4 @@
 repos:
-    - repo: local
-      hooks:
-          # Prevent committing .rej files
-          - id: forbidden-files
-            name: forbidden files
-            entry: found Copier update rejection files; review them and remove them
-            language: fail
-            files: "\\.rej$"
     - repo: https://github.com/pre-commit/pre-commit-hooks
       rev: v4.6.0
       hooks:
@@ -19,7 +11,6 @@ repos:
             args: [--unique]
           - id: mixed-line-ending
             args: [--fix=lf]
-          - id: no-commit-to-branch
           - id: pretty-format-json
             args: [--autofix, --indent=4]
           - id: trailing-whitespace
@@ -34,7 +25,6 @@ repos:
       hooks:
           - id: prettier
             types_or: [yaml, json]
-            exclude: ".copier-answers.yml"
     - repo: https://github.com/adrienverge/yamllint
       rev: v1.35.1
       hooks:

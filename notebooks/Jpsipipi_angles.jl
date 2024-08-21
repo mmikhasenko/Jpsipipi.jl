@@ -7,26 +7,26 @@ using InteractiveUtils
 # ╔═╡ f02e4e4c-58e8-11ef-1cc2-2533296d7f06
 # ╠═╡ show_logs = false
 begin # install dependences
-	using CondaPkg
-	CondaPkg.add_pip("decayangle")
-	
-	using PythonCall
-	using DataFrames
-	using DelimitedFiles
-	using JSON
-	using LinearAlgebra
-	# 
-	using ThreeBodyDecays
+    using CondaPkg
+    CondaPkg.add_pip("decayangle")
+
+    using PythonCall
+    using DataFrames
+    using DelimitedFiles
+    using JSON
+    using LinearAlgebra
+    #
+    using ThreeBodyDecays
 end
 
 # ╔═╡ d8eb234c-621c-4704-95ca-e470b6703d29
 begin # import python packages
-	tp = pyimport("decayangle.decay_topology")
-	# 
-	np = pyimport("numpy")
-	# 
-	cfg = pyimport("decayangle.config").config
-	cfg.sorting = "off"
+    tp = pyimport("decayangle.decay_topology")
+    #
+    np = pyimport("numpy")
+    #
+    cfg = pyimport("decayangle.config").config
+    cfg.sorting = "off"
 end;
 
 # ╔═╡ c9872ea9-d14e-4178-8c61-3ea3886ff0f7
@@ -36,7 +36,7 @@ md"""
 
 # ╔═╡ bcec80a1-5ba6-4db2-9699-3f972fac595f
 checklist = open(joinpath(@__DIR__, "encoding_checklist.json")) do io
-	JSON.parse(io)
+    JSON.parse(io)
 end
 
 # ╔═╡ 0b24392f-41d5-45bc-98c6-6ca511f9dc12
@@ -60,41 +60,39 @@ Z- topology = (((3,4),2),1)
 
 # ╔═╡ 06b2feed-0fc1-4db3-b59c-90eec29fad2f
 const mother_lab = Dict(
-		[1] => "pip",
-		[2] => "pim",
-		[3] => "mup",
-		[4] => "mum",
-		# 
-		[1,2] => "f0",
-		[3,4] => "psi",
-		# 
-		[1,3,4] => "Zp",
-		[2,3,4] => "Zm",
-		# 
-		[1,2,3,4] => "Y",
+    [1] => "pip",
+    [2] => "pim",
+    [3] => "mup",
+    [4] => "mum",
+    #
+    [1, 2] => "f0",
+    [3, 4] => "psi",
+    #
+    [1, 3, 4] => "Zp",
+    [2, 3, 4] => "Zm",
+    #
+    [1, 2, 3, 4] => "Y",
 )
 
 # ╔═╡ 90051a1d-0d35-4168-9181-ff673fe2e211
 momenta = let
-	_momenta = Dict(
-		i => np.array(
-			checklist["four_vectors"][mother_lab[[i]]] .|> Float64
-		) for i in 1:4
-	);
-	# reference_topology = tg[1]
-	# _momenta = reference_topology.to_rest_frame(_momenta)
-	# _momenta = reference_topology.align_with_daughter(_momenta)
-	_momenta
+    _momenta = Dict(
+        i => np.array(checklist["four_vectors"][mother_lab[[i]]] .|> Float64) for i = 1:4
+    )
+    # reference_topology = tg[1]
+    # _momenta = reference_topology.to_rest_frame(_momenta)
+    # _momenta = reference_topology.align_with_daughter(_momenta)
+    _momenta
 end
 
 # ╔═╡ c6d21d2e-ce8e-492d-b683-a4835a05f4b1
-mass(p) = sqrt(p[4]^2-norm(p[1:3])^2)
+mass(p) = sqrt(p[4]^2 - norm(p[1:3])^2)
 
 # ╔═╡ c26dd975-7a9d-471b-b4d0-94b919648170
 begin
-	p1 = checklist["four_vectors"][mother_lab[[1]]]
-	p2 = checklist["four_vectors"][mother_lab[[2]]]
-	mass(p1+p2)
+    p1 = checklist["four_vectors"][mother_lab[[1]]]
+    p2 = checklist["four_vectors"][mother_lab[[2]]]
+    mass(p1 + p2)
 end
 
 # ╔═╡ c17e9e8c-c78a-4da0-a801-5e22ed257cb3
@@ -102,32 +100,33 @@ flatten_tuple(t) = typeof(t) <: Tuple ? mapreduce(flatten_tuple, vcat, t) : [t]
 
 # ╔═╡ 14ea43ae-c799-4e0d-adcc-ae336bb86ae4
 function node_name(vertex, topology)
-	ts = string(topology)
-	m_lab = mother_lab[sort(flatten_tuple(vertex))]
-	d1_lab = mother_lab[sort(flatten_tuple(vertex[1]))]
-	d2_lab = mother_lab[sort(flatten_tuple(vertex[2]))]
-	return "$(m_lab) --> $(d1_lab) $(d2_lab) : $(ts)"
+    ts = string(topology)
+    m_lab = mother_lab[sort(flatten_tuple(vertex))]
+    d1_lab = mother_lab[sort(flatten_tuple(vertex[1]))]
+    d2_lab = mother_lab[sort(flatten_tuple(vertex[2]))]
+    return "$(m_lab) --> $(d1_lab) $(d2_lab) : $(ts)"
 end
 
 # ╔═╡ 5c8d8741-072f-490e-8dec-f88adead8aea
 reference_angles = let
-	angles_dict = checklist["angles"]
-	# 
-	angle_tuples = collect(values(angles_dict))
-	angle_keys = collect(keys(angles_dict))
-	# 
-	_df = DataFrame(
-		triple_name = collect(keys(angles_dict)),
-		x = collect(values(angle_tuples)))
-	_df = _df[isa.(_df.x, Dict), :]
-	#
-	triple_type = NamedTuple{Tuple(Symbol.(keys(angle_tuples[2])))}
-	#
-	transform!(_df, :x => ByRow() do x
-		triple_type(values(x))
-	end => AsTable)
-	rename!(_df, :theta => :theta_ref, :phi => :phi_ref,)
-	select(_df, [:triple_name, :theta_ref, :phi_ref])
+    angles_dict = checklist["angles"]
+    #
+    angle_tuples = collect(values(angles_dict))
+    angle_keys = collect(keys(angles_dict))
+    #
+    _df = DataFrame(
+        triple_name = collect(keys(angles_dict)),
+        x = collect(values(angle_tuples)),
+    )
+    _df = _df[isa.(_df.x, Dict), :]
+    #
+    triple_type = NamedTuple{Tuple(Symbol.(keys(angle_tuples[2])))}
+    #
+    transform!(_df, :x => ByRow() do x
+        triple_type(values(x))
+    end => AsTable)
+    rename!(_df, :theta => :theta_ref, :phi => :phi_ref)
+    select(_df, [:triple_name, :theta_ref, :phi_ref])
 end
 
 # ╔═╡ 2a92a2e4-a6fd-449d-9828-3f352d0f5d91
@@ -137,9 +136,9 @@ md"""
 
 # ╔═╡ 9ba1ca63-8e2a-47ec-adb1-a4574e963799
 begin
-	topology_f0 = tp.Topology(0, decay_topology=((1,2),(3,4)))
-	topology_Zp = tp.Topology(0, decay_topology=(((3,4),1),2))
-	topology_Zm = tp.Topology(0, decay_topology=(((3,4),2),1))
+    topology_f0 = tp.Topology(0, decay_topology = ((1, 2), (3, 4)))
+    topology_Zp = tp.Topology(0, decay_topology = (((3, 4), 1), 2))
+    topology_Zm = tp.Topology(0, decay_topology = (((3, 4), 2), 1))
 end;
 
 # ╔═╡ 96d8b928-9d56-4e9a-ac25-fdff221c74a2
@@ -147,31 +146,34 @@ string(topology_f0)
 
 # ╔═╡ 616be890-3dea-473a-971a-875e9fce725a
 computed_angles = begin
-	_df = DataFrame(topology = [:topology_f0, :topology_Zp, :topology_Zm])
-	# 
-	transform!(_df, :topology => ByRow() do t
-		tv = eval(t)
-		fullname=string(tv)
-		angles = pyconvert(Dict, tv.helicity_angles(momenta))
-		(; fullname, angles)
-	end => :x)
-	# 
-	select!(_df, :topology, :x => identity => AsTable)
-	# 
-	transform!(_df, :angles => ByRow() do d
-		NamedTuple{(:vertex, :phi_theta)}.(collect(d))
-	end => :y)
-	_df = flatten(_df, :y)
-	transform!(_df, :y => identity => AsTable)
-	transform!(_df, :phi_theta => identity => AsTable)
-	transform!(_df, :theta_rf => ByRow(x->x/π*180) => :theta_here)
-	rename!(_df, :phi_rf => :phi_here)
-	# 
-	transform!(_df, [:vertex, :topology] => ByRow() do vertex, topology
-		node_name(vertex, topology)
-	end => :triple_name)
-	#
-	select!(_df, [:triple_name, :theta_here, :phi_here])	
+    _df = DataFrame(topology = [:topology_f0, :topology_Zp, :topology_Zm])
+    #
+    transform!(
+        _df,
+        :topology => ByRow() do t
+            tv = eval(t)
+            fullname = string(tv)
+            angles = pyconvert(Dict, tv.helicity_angles(momenta))
+            (; fullname, angles)
+        end => :x,
+    )
+    #
+    select!(_df, :topology, :x => identity => AsTable)
+    #
+    transform!(_df, :angles => ByRow() do d
+        NamedTuple{(:vertex, :phi_theta)}.(collect(d))
+    end => :y)
+    _df = flatten(_df, :y)
+    transform!(_df, :y => identity => AsTable)
+    transform!(_df, :phi_theta => identity => AsTable)
+    transform!(_df, :theta_rf => ByRow(x -> x / π * 180) => :theta_here)
+    rename!(_df, :phi_rf => :phi_here)
+    #
+    transform!(_df, [:vertex, :topology] => ByRow() do vertex, topology
+            node_name(vertex, topology)
+        end => :triple_name)
+    #
+    select!(_df, [:triple_name, :theta_here, :phi_here])
 end
 
 # ╔═╡ e4a6b9ab-ed6e-4fd4-b06f-f0a416d78db2
@@ -180,8 +182,10 @@ md"""
 """
 
 # ╔═╡ a044287f-1d26-4acf-ab1f-ea5fe82bb4ac
-select(leftjoin(reference_angles, computed_angles; on=:triple_name),
-	[:triple_name, :theta_here, :theta_ref, :phi_here, :phi_ref])
+select(
+    leftjoin(reference_angles, computed_angles; on = :triple_name),
+    [:triple_name, :theta_here, :theta_ref, :phi_here, :phi_ref],
+)
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """

@@ -6,17 +6,17 @@ using InteractiveUtils
 
 # ╔═╡ 07e0f456-5e35-11ef-0625-49196ababe18
 begin
-	using ThreeBodyDecays
-	using ThreeBodyDecays.PartialWaveFunctions
-	using Plots
-	using QuadGK
-	using DataFrames
-	using JSON
-	using StaticArrays
-	using Parameters
-	using OrderedCollections
-	# 
-	theme(:wong2, grid=false,)
+    using ThreeBodyDecays
+    using ThreeBodyDecays.PartialWaveFunctions
+    using Plots
+    using QuadGK
+    using DataFrames
+    using JSON
+    using StaticArrays
+    using Parameters
+    using OrderedCollections
+    #
+    theme(:wong2, grid = false)
 end
 
 # ╔═╡ 9e2c6244-0c31-4102-a054-7752bdf699f0
@@ -35,9 +35,9 @@ md"""
 
 # ╔═╡ ba0a99c3-90cf-4a69-a734-5585c5e18966
 begin
-	const mJψ = 3.09
-	const jJψ = 1
-	const mπ = 0.14
+    const mJψ = 3.09
+    const jJψ = 1
+    const mπ = 0.14
 end;
 
 # ╔═╡ f84d6674-58cf-4df7-a2db-3de451effdaf
@@ -50,7 +50,7 @@ const ms = ThreeBodyMasses(mJψ, mπ, mπ; m0 = sqrt_s);
 tbs = ThreeBodySystem(ms, ThreeBodySpins(2jJψ, 0, 0; two_h0 = 2));
 
 # ╔═╡ cca91625-0048-4535-bf6d-fb3781bfdb0d
-const Ps = ThreeBodyParities('-', '-', '-'; P0='-')
+const Ps = ThreeBodyParities('-', '-', '-'; P0 = '-')
 
 # ╔═╡ 2ca09a4a-c444-48f9-92bd-0477c2dd6673
 md"""
@@ -61,26 +61,36 @@ Trying to replicate the model of ["Spin and Parity of Zc(3900)"](https://arxiv.o
 
 # ╔═╡ cc71e58a-2a0c-4439-bdba-b46335c9198d
 df = let
-	_df = NamedTuple{(:name, :j, :P, :k)}.([
-		("f0",  0, '+', 1),
-		("f2", 2, '+', 1),
-		("Zp", 1, '+', 3)
-		]) |> DataFrame
-	# 
-	transform!(_df, :j => x2 => :two_j)
-	# 
-	transform!(_df, [:two_j, :P, :k] => ByRow() do two_j,p,k
-		possible_lsLS(SpinParity(two_j, p), tbs.two_js, Ps; k)
-	end => :ls_LS)
+    _df =
+        NamedTuple{(
+            :name,
+            :j,
+            :P,
+            :k,
+        )}.([("f0", 0, '+', 1), ("f2", 2, '+', 1), ("Zp", 1, '+', 3)]) |> DataFrame
+    #
+    transform!(_df, :j => x2 => :two_j)
+    #
+    transform!(
+        _df,
+        [:two_j, :P, :k] =>
+            ByRow() do two_j, p, k
+                possible_lsLS(SpinParity(two_j, p), tbs.two_js, Ps; k)
+            end => :ls_LS,
+    )
 end
 
 # ╔═╡ ce276681-5b19-46e8-b84f-2db3f0b48798
 df_ls = let
-	_df = transform(df, :ls_LS => ByRow(x->vcat(x...)) => :ls_LS)
-	_df = flatten(_df, :ls_LS)
-	transform(_df, [:name, :ls_LS] => ByRow() do name, ls_LS
-		name * "_" * string(ls_LS.two_ls) * "_" * string(ls_LS.two_LS) 
-	end => "name_ls_LS")
+    _df = transform(df, :ls_LS => ByRow(x -> vcat(x...)) => :ls_LS)
+    _df = flatten(_df, :ls_LS)
+    transform(
+        _df,
+        [:name, :ls_LS] =>
+            ByRow() do name, ls_LS
+                name * "_" * string(ls_LS.two_ls) * "_" * string(ls_LS.two_LS)
+            end => "name_ls_LS",
+    )
 end
 
 # ╔═╡ ee1f8f2d-4c9c-449a-9b93-7bc82f65db91
@@ -90,26 +100,26 @@ md"""
 
 # ╔═╡ 08a7b4da-5868-4877-900d-ddc3f309590b
 begin
-	import ThreeBodyDecays:amplitude
-	struct NodeTwo{T}
-		two_j::Int
-		two_ji::Int
-		two_jj::Int
-		recoupling::T
-	end
-	function amplitude(X::NodeTwo, two_λ, two_λi, two_λj, angles)
-		@unpack recoupling, two_j, two_ji, two_jj = X
-		@unpack ϕ, cosθ = angles
-		# 
-		D = wignerD_doublearg(two_j, two_λ, two_λi-two_λj, ϕ, cosθ, 0)
-		H = amplitude(recoupling, (two_λi, two_λj), (two_j, two_ji, two_jj))
-		# 
-		conj(D) * H
-	end 
+    import ThreeBodyDecays: amplitude
+    struct NodeTwo{T}
+        two_j::Int
+        two_ji::Int
+        two_jj::Int
+        recoupling::T
+    end
+    function amplitude(X::NodeTwo, two_λ, two_λi, two_λj, angles)
+        @unpack recoupling, two_j, two_ji, two_jj = X
+        @unpack ϕ, cosθ = angles
+        #
+        D = wignerD_doublearg(two_j, two_λ, two_λi - two_λj, ϕ, cosθ, 0)
+        H = amplitude(recoupling, (two_λi, two_λj), (two_j, two_ji, two_jj))
+        #
+        conj(D) * H
+    end
 end
 
 # ╔═╡ f7df7683-6e32-48b2-a89d-01999ce0184f
-const Nψ = NodeTwo(2,1,1, ParityRecoupling(1,-1,true))
+const Nψ = NodeTwo(2, 1, 1, ParityRecoupling(1, -1, true))
 
 # ╔═╡ ba87419c-ff6e-4254-b81c-c4be24a82acb
 md"""
@@ -118,31 +128,34 @@ md"""
 
 # ╔═╡ f872ddaf-a30a-4c2d-a803-dde89f58cd9c
 checklist = open(joinpath(@__DIR__, "encoding_checklist_nils.json")) do io
-	JSON.parse(io)
+    JSON.parse(io)
 end
 
 # ╔═╡ ac0ae70b-6d88-4fb4-b720-b05db381cf76
 angles = let
-	angles_dict = checklist["angles"]
-	# 
-	angle_tuples = collect(values(angles_dict))
-	angle_keys = collect(keys(angles_dict))
-	# 
-	_df = DataFrame(
-		triple_name = collect(keys(angles_dict)),
-		x = collect(values(angle_tuples)))
-	_df = _df[isa.(_df.x, Dict), :]
-	#
-	triple_type = NamedTuple{Tuple(Symbol.(keys(angle_tuples[2])))}
-	#
-	transform!(_df, :x => ByRow() do x
-		triple_type(values(x))
-	end => AsTable)
-	select!(_df,
-		:triple_name,
-		:theta => ByRow(θ->cos(θ/180*π)) => :cosθ,
-		:phi => identity => :ϕ,)
-	Dict(_df.triple_name .=> NamedTuple.(eachrow(_df[:,[2,3]])))
+    angles_dict = checklist["angles"]
+    #
+    angle_tuples = collect(values(angles_dict))
+    angle_keys = collect(keys(angles_dict))
+    #
+    _df = DataFrame(
+        triple_name = collect(keys(angles_dict)),
+        x = collect(values(angle_tuples)),
+    )
+    _df = _df[isa.(_df.x, Dict), :]
+    #
+    triple_type = NamedTuple{Tuple(Symbol.(keys(angle_tuples[2])))}
+    #
+    transform!(_df, :x => ByRow() do x
+        triple_type(values(x))
+    end => AsTable)
+    select!(
+        _df,
+        :triple_name,
+        :theta => ByRow(θ -> cos(θ / 180 * π)) => :cosθ,
+        :phi => identity => :ϕ,
+    )
+    Dict(_df.triple_name .=> NamedTuple.(eachrow(_df[:, [2, 3]])))
 end
 
 # ╔═╡ 1e14f72b-18e4-4484-95cc-ab8fe823e266
@@ -151,42 +164,60 @@ md"""
 """
 
 # ╔═╡ ce820c91-fcff-4fa4-bf2e-684ce1dc0191
-function A_f0((HRk, Hij), two_j, (two_λμp, two_λμm, two_λY), (angles_Rk, angles_Rij, angles_ψ))
-	NRk = NodeTwo(2, two_j, 2, HRk) # Y -> f psi
-	Nij = NodeTwo(two_j, 0, 0, Hij) # f -> pi pi
-	sum(Iterators.product(-two_j:2:two_j, -2:2:2)) do (two_λ, two_λψ)
-		amplitude(NRk, two_λY, two_λ, two_λψ, angles_Rk) *
-			amplitude(Nij, two_λ, 0, 0, angles_Rij) *
-			amplitude(Nψ, two_λψ, two_λμp, two_λμm, angles_ψ)
-	end
+function A_f0(
+    (HRk, Hij),
+    two_j,
+    (two_λμp, two_λμm, two_λY),
+    (angles_Rk, angles_Rij, angles_ψ),
+)
+    NRk = NodeTwo(2, two_j, 2, HRk) # Y -> f psi
+    Nij = NodeTwo(two_j, 0, 0, Hij) # f -> pi pi
+    sum(Iterators.product(-two_j:2:two_j, -2:2:2)) do (two_λ, two_λψ)
+        amplitude(NRk, two_λY, two_λ, two_λψ, angles_Rk) *
+        amplitude(Nij, two_λ, 0, 0, angles_Rij) *
+        amplitude(Nψ, two_λψ, two_λμp, two_λμm, angles_ψ)
+    end
 end
 
 # ╔═╡ b6ca378a-7639-4ef6-a52f-0474c2ad7518
 let
-	df_ls_f0 = df_ls[df_ls.k .== 1,:]
-	transform!(df_ls_f0, [:two_j, :ls_LS, :name_ls_LS] => 
-	ByRow() do two_j, ls_LS, name_ls_LS
-		# @unpack two_j, ls_LS, name_ls_LS = df_ls[i,:]
-		# 
-		@unpack two_LS, two_ls = ls_LS
-		HRk, Hij = RecouplingLS(two_LS), RecouplingLS(two_ls)
-		two_λY = 2
-		#
-		angles_Rk, angles_Rij, angles_ψ = 
-			angles["Y --> f0 psi : topology_f0"],
-			angles["f0 --> pip pim : topology_f0"],
-			angles["psi --> mup mum : topology_f0"]
-		# 
-		computed_value = A_f0((HRk, Hij), two_j, (1, -1, two_λY), (angles_Rk, angles_Rij, angles_ψ))
-		# 
-		# to be compared to
-		text_value_from_table = checklist["chains"]["amplitude"][name_ls_LS]
-		reference_value = eval(Meta.parse("complex$text_value_from_table"))
-		# 
-		(; reference_value, computed_value)
-	end => AsTable)
-	select!(df_ls_f0, :name_ls_LS, :reference_value, :computed_value,
-	[:reference_value, :computed_value] => ByRow((x,y)->round(y/x; digits=3)) =>:ratio )
+    df_ls_f0 = df_ls[df_ls.k.==1, :]
+    transform!(
+        df_ls_f0,
+        [:two_j, :ls_LS, :name_ls_LS] =>
+            ByRow() do two_j, ls_LS, name_ls_LS
+                # @unpack two_j, ls_LS, name_ls_LS = df_ls[i,:]
+                #
+                @unpack two_LS, two_ls = ls_LS
+                HRk, Hij = RecouplingLS(two_LS), RecouplingLS(two_ls)
+                two_λY = 2
+                #
+                angles_Rk, angles_Rij, angles_ψ = angles["Y --> f0 psi : topology_f0"],
+                angles["f0 --> pip pim : topology_f0"],
+                angles["psi --> mup mum : topology_f0"]
+                #
+                computed_value = A_f0(
+                    (HRk, Hij),
+                    two_j,
+                    (1, -1, two_λY),
+                    (angles_Rk, angles_Rij, angles_ψ),
+                )
+                #
+                # to be compared to
+                text_value_from_table = checklist["chains"]["amplitude"][name_ls_LS]
+                reference_value = eval(Meta.parse("complex$text_value_from_table"))
+                #
+                (; reference_value, computed_value)
+            end => AsTable,
+    )
+    select!(
+        df_ls_f0,
+        :name_ls_LS,
+        :reference_value,
+        :computed_value,
+        [:reference_value, :computed_value] =>
+            ByRow((x, y) -> round(y / x; digits = 3)) => :ratio,
+    )
 end
 
 # ╔═╡ 926e21a8-8922-4b2f-99f5-deff6fa63d27
@@ -195,46 +226,64 @@ md"""
 """
 
 # ╔═╡ f45a2405-f61a-4c51-a2fa-9e5166d3798d
-function A_Z((HRk, Hij), two_j, (two_λμp, two_λμm, two_λY), (angles_Rk, angles_Rij, angles_ψ))
-	NRk = NodeTwo(2, two_j, 0, HRk) # Y -> Z pi
-	Nij = NodeTwo(two_j, 2, 0, Hij) # Z -> psi pi
-	sum(Iterators.product(-two_j:2:two_j, -2:2:2)) do (two_λ, two_λψ)
-		amplitude(NRk, two_λY, two_λ, 0, angles_Rk) *
-			amplitude(Nij, two_λ, two_λψ, 0, angles_Rij) *
-			amplitude(Nψ, two_λψ, two_λμp, two_λμm, angles_ψ)
-	end
+function A_Z(
+    (HRk, Hij),
+    two_j,
+    (two_λμp, two_λμm, two_λY),
+    (angles_Rk, angles_Rij, angles_ψ),
+)
+    NRk = NodeTwo(2, two_j, 0, HRk) # Y -> Z pi
+    Nij = NodeTwo(two_j, 2, 0, Hij) # Z -> psi pi
+    sum(Iterators.product(-two_j:2:two_j, -2:2:2)) do (two_λ, two_λψ)
+        amplitude(NRk, two_λY, two_λ, 0, angles_Rk) *
+        amplitude(Nij, two_λ, two_λψ, 0, angles_Rij) *
+        amplitude(Nψ, two_λψ, two_λμp, two_λμm, angles_ψ)
+    end
 end
 
 # ╔═╡ 604049fe-ad63-4380-a116-2e0ed1b82b84
 let
-	df_ls_Z = df_ls[df_ls.k .== 3,:]
-	transform!(df_ls_Z, [:two_j, :ls_LS, :name_ls_LS] => 
-	ByRow() do two_j, ls_LS, name_ls_LS
-		# 
-		@unpack two_ls, two_LS = ls_LS
-		HRk, Hij = RecouplingLS(two_LS), RecouplingLS(two_ls)
-		two_λY = 2
-		#
-		angles_Rk, angles_Rij, angles_ψ = 
-			angles["Y --> Zp pim : topology_Zp"],
-			angles["Zp --> psi pip : topology_Zp"],
-			angles["psi --> mup mum : topology_Zp"]
-		# 
-		computed_value = A_Z((HRk, Hij), two_j, (1, -1, two_λY), (angles_Rk, angles_Rij, angles_ψ))
-		# 
-		# to be compared to
-		text_value_from_table = checklist["chains"]["amplitude"][name_ls_LS]
-		reference_value = eval(Meta.parse("complex$text_value_from_table"))
-		# 
-		(; reference_value, computed_value)
-	end => AsTable)
-	# 
-	select!(df_ls_Z, :name_ls_LS, :reference_value, :computed_value,
-	[:reference_value, :computed_value] => ByRow((x,y)->round(y/x; digits=3)) =>:ratio )
-	# 
-	# α = checklist["angles"]["Zp pim alpha : topology_Zp"]
-	# df_ls_Z.phase .= cis(α)
-	# df_ls_Z
+    df_ls_Z = df_ls[df_ls.k.==3, :]
+    transform!(
+        df_ls_Z,
+        [:two_j, :ls_LS, :name_ls_LS] =>
+            ByRow() do two_j, ls_LS, name_ls_LS
+                #
+                @unpack two_ls, two_LS = ls_LS
+                HRk, Hij = RecouplingLS(two_LS), RecouplingLS(two_ls)
+                two_λY = 2
+                #
+                angles_Rk, angles_Rij, angles_ψ = angles["Y --> Zp pim : topology_Zp"],
+                angles["Zp --> psi pip : topology_Zp"],
+                angles["psi --> mup mum : topology_Zp"]
+                #
+                computed_value = A_Z(
+                    (HRk, Hij),
+                    two_j,
+                    (1, -1, two_λY),
+                    (angles_Rk, angles_Rij, angles_ψ),
+                )
+                #
+                # to be compared to
+                text_value_from_table = checklist["chains"]["amplitude"][name_ls_LS]
+                reference_value = eval(Meta.parse("complex$text_value_from_table"))
+                #
+                (; reference_value, computed_value)
+            end => AsTable,
+    )
+    #
+    select!(
+        df_ls_Z,
+        :name_ls_LS,
+        :reference_value,
+        :computed_value,
+        [:reference_value, :computed_value] =>
+            ByRow((x, y) -> round(y / x; digits = 3)) => :ratio,
+    )
+    #
+    # α = checklist["angles"]["Zp pim alpha : topology_Zp"]
+    # df_ls_Z.phase .= cis(α)
+    # df_ls_Z
 end
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
