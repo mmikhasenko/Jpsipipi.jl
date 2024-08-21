@@ -127,7 +127,7 @@ md"""
 """
 
 # ╔═╡ f872ddaf-a30a-4c2d-a803-dde89f58cd9c
-checklist = open(joinpath(@__DIR__, "encoding_checklist_nils.json")) do io
+checklist = open(joinpath(@__DIR__, "..", "data", "encoding_checklist_nils.json")) do io
     JSON.parse(io)
 end
 
