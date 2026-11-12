@@ -179,6 +179,13 @@ end
 # ╔═╡ e4a6b9ab-ed6e-4fd4-b06f-f0a416d78db2
 md"""
 ## Comparison
+
+The raw angles below retain each implementation's frame convention. For
+`psi --> mup mum : topology_f0`, decayangle transports the second daughter's
+frame with its [particle-2 rotation](https://github.com/KaiHabermann/decayangle/blob/v1.1.5/src/decayangle/decay_topology.py#L373-L394),
+whereas the reference aligns directly with
+that daughter's momentum. Their transverse axes differ by a rotation of π
+about z, so this one azimuth differs by π; the polar angle is unchanged.
 """
 
 # ╔═╡ a044287f-1d26-4acf-ab1f-ea5fe82bb4ac

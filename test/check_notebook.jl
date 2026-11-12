@@ -22,7 +22,11 @@ elseif name == "angles"
         # Four-vectors are rounded to six decimal places; theta is in degrees.
         for row in eachrow(angle_comparison)
             @test isapprox(row.theta_here, row.theta_ref; atol = 5e-4, rtol = 0)
-            @test abs(rem2pi(row.phi_here - row.phi_ref, RoundNearest)) < 5e-5
+            # The f0 topology's psi is the second daughter; see the notebook's
+            # frame-convention explanation and decayangle Node.boost particle-2 rule.
+            # https://github.com/KaiHabermann/decayangle/blob/v1.1.5/src/decayangle/decay_topology.py
+            offset = row.triple_name == "psi --> mup mum : topology_f0" ? π : 0
+            @test abs(rem2pi(row.phi_here - row.phi_ref - offset, RoundNearest)) < 5e-5
         end
     end
 end
