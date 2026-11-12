@@ -8,15 +8,12 @@ using InteractiveUtils
 begin
     using ThreeBodyDecays
     using ThreeBodyDecays.PartialWaveFunctions
-    using Plots
     using QuadGK
     using DataFrames
     using JSON
     using StaticArrays
     using Parameters
     using OrderedCollections
-    #
-    theme(:wong2, grid = false)
 end
 
 # ╔═╡ 9e2c6244-0c31-4102-a054-7752bdf699f0
@@ -127,7 +124,7 @@ md"""
 """
 
 # ╔═╡ f872ddaf-a30a-4c2d-a803-dde89f58cd9c
-checklist = open(joinpath(@__DIR__, "..", "data", "encoding_checklist_nils.json")) do io
+checklist = open(joinpath(@__DIR__, "..", "data", "encoding_checklist.json")) do io
     JSON.parse(io)
 end
 
@@ -180,7 +177,7 @@ function A_f0(
 end
 
 # ╔═╡ b6ca378a-7639-4ef6-a52f-0474c2ad7518
-let
+f0_comparison = let
     df_ls_f0 = df_ls[df_ls.k.==1, :]
     transform!(
         df_ls_f0,
@@ -242,7 +239,7 @@ function A_Z(
 end
 
 # ╔═╡ 604049fe-ad63-4380-a116-2e0ed1b82b84
-let
+z_comparison = let
     df_ls_Z = df_ls[df_ls.k.==3, :]
     transform!(
         df_ls_Z,

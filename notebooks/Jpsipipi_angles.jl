@@ -182,7 +182,7 @@ md"""
 """
 
 # ╔═╡ a044287f-1d26-4acf-ab1f-ea5fe82bb4ac
-select(
+angle_comparison = select(
     leftjoin(reference_angles, computed_angles; on = :triple_name),
     [:triple_name, :theta_here, :theta_ref, :phi_here, :phi_ref],
 )
