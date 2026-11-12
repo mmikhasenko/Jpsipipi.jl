@@ -8,15 +8,12 @@ using InteractiveUtils
 begin
     using ThreeBodyDecays
     using ThreeBodyDecays.PartialWaveFunctions
-    using Plots
     using QuadGK
     using DataFrames
     using JSON
     using StaticArrays
     using Parameters
     using OrderedCollections
-    #
-    theme(:wong2, grid = false)
 end
 
 # ╔═╡ 9e2c6244-0c31-4102-a054-7752bdf699f0
@@ -127,7 +124,7 @@ md"""
 """
 
 # ╔═╡ f872ddaf-a30a-4c2d-a803-dde89f58cd9c
-checklist = open(joinpath(@__DIR__, "..", "data", "encoding_checklist_nils.json")) do io
+checklist = open(joinpath(@__DIR__, "..", "data", "encoding_checklist.json")) do io
     JSON.parse(io)
 end
 
@@ -180,7 +177,7 @@ function A_f0(
 end
 
 # ╔═╡ b6ca378a-7639-4ef6-a52f-0474c2ad7518
-let
+f0_comparison = let
     df_ls_f0 = df_ls[df_ls.k.==1, :]
     transform!(
         df_ls_f0,
@@ -242,7 +239,7 @@ function A_Z(
 end
 
 # ╔═╡ 604049fe-ad63-4380-a116-2e0ed1b82b84
-let
+z_comparison = let
     df_ls_Z = df_ls[df_ls.k.==3, :]
     transform!(
         df_ls_Z,
@@ -306,16 +303,16 @@ Parameters = "~0.12.3"
 Plots = "~1.40.5"
 QuadGK = "~2.10.1"
 StaticArrays = "~1.9.7"
-ThreeBodyDecays = "~0.12.1"
+ThreeBodyDecays = "~0.16.0"
 """
 
 # ╔═╡ 00000000-0000-0000-0000-000000000002
 PLUTO_MANIFEST_TOML_CONTENTS = """
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.10.4"
+julia_version = "1.10.13"
 manifest_format = "2.0"
-project_hash = "d8154e4727be7ce85ec933dd7b25669fdaf5b431"
+project_hash = "b5a5740e82b616013b5018129d45b09b5089c5a8"
 
 [[deps.ArgTools]]
 uuid = "0dad84c5-d112-42e6-8d28-ef12dabb789f"
@@ -391,7 +388,7 @@ weakdeps = ["Dates", "LinearAlgebra"]
 [[deps.CompilerSupportLibraries_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "e66e0078-7015-5450-92f7-15fbd957f2ae"
-version = "1.1.1+0"
+version = "1.1.2+1"
 
 [[deps.ConcurrentUtilities]]
 deps = ["Serialization", "Sockets"]
@@ -706,7 +703,7 @@ version = "0.6.4"
 [[deps.LibCURL_jll]]
 deps = ["Artifacts", "LibSSH2_jll", "Libdl", "MbedTLS_jll", "Zlib_jll", "nghttp2_jll"]
 uuid = "deac9b47-8bc7-5906-a0fe-35ac56dc84c0"
-version = "8.4.0+0"
+version = "8.7.1+0"
 
 [[deps.LibGit2]]
 deps = ["Base64", "LibGit2_jll", "NetworkOptions", "Printf", "SHA"]
@@ -715,7 +712,7 @@ uuid = "76f85450-5226-5b5a-8eaa-529ad045b433"
 [[deps.LibGit2_jll]]
 deps = ["Artifacts", "LibSSH2_jll", "Libdl", "MbedTLS_jll"]
 uuid = "e37daf67-58a4-590a-8e99-b0245dd2ffc5"
-version = "1.6.4+0"
+version = "1.7.2+0"
 
 [[deps.LibSSH2_jll]]
 deps = ["Artifacts", "Libdl", "MbedTLS_jll"]
@@ -821,7 +818,7 @@ version = "1.1.9"
 [[deps.MbedTLS_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "c8ffd9c3-330d-5841-b78e-0817d7145fa1"
-version = "2.28.2+1"
+version = "2.28.1010+0"
 
 [[deps.Measures]]
 git-tree-sha1 = "c13304c81eec1ed3af7fc20e75fb6b26092a1102"
@@ -839,7 +836,7 @@ uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 
 [[deps.MozillaCACerts_jll]]
 uuid = "14a3606d-f60d-562e-9121-12d972cd8159"
-version = "2023.1.10"
+version = "2026.10.20"
 
 [[deps.NaNMath]]
 deps = ["OpenLibm_jll"]
@@ -860,12 +857,12 @@ version = "1.3.5+1"
 [[deps.OpenBLAS_jll]]
 deps = ["Artifacts", "CompilerSupportLibraries_jll", "Libdl"]
 uuid = "4536629a-c528-5b80-bd46-f80d51c5b363"
-version = "0.3.23+4"
+version = "0.3.23+5"
 
 [[deps.OpenLibm_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "05823500-19ac-5b8b-9628-191a04bc5112"
-version = "0.8.1+2"
+version = "0.8.5+0"
 
 [[deps.OpenSSL]]
 deps = ["BitFlags", "Dates", "MozillaCACerts_jll", "OpenSSL_jll", "Sockets"]
@@ -1232,10 +1229,10 @@ deps = ["InteractiveUtils", "Logging", "Random", "Serialization"]
 uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [[deps.ThreeBodyDecays]]
-deps = ["Parameters", "PartialWaveFunctions", "PolynomialRoots", "Polynomials", "RecipesBase", "StaticArrays", "Tullio"]
-git-tree-sha1 = "a69a2a24cc303489cdd551690ba7ddd2b83fa69d"
+deps = ["LinearAlgebra", "Parameters", "PartialWaveFunctions", "PolynomialRoots", "Polynomials", "Random", "RecipesBase", "StaticArrays", "Statistics", "Tullio"]
+git-tree-sha1 = "1839f98f9299b86ea769ab48750ee03ff1e2fe40"
 uuid = "e6563dab-9ca1-5843-bde3-2ccf38d63843"
-version = "0.12.1"
+version = "0.16.0"
 
 [[deps.TranscodingStreams]]
 git-tree-sha1 = "e84b3a11b9bece70d14cce63406bbc79ed3464d2"
@@ -1491,7 +1488,7 @@ version = "1.5.0+0"
 [[deps.Zlib_jll]]
 deps = ["Libdl"]
 uuid = "83775a58-1f1d-513f-b197-d71354ab007a"
-version = "1.2.13+1"
+version = "1.3.2+0"
 
 [[deps.Zstd_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl"]
@@ -1532,7 +1529,7 @@ version = "0.15.1+0"
 [[deps.libblastrampoline_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "8e850b90-86db-534c-a0d3-1478176c7d93"
-version = "5.8.0+1"
+version = "5.11.0+0"
 
 [[deps.libdecor_jll]]
 deps = ["Artifacts", "Dbus_jll", "JLLWrappers", "Libdl", "Libglvnd_jll", "Pango_jll", "Wayland_jll", "xkbcommon_jll"]
@@ -1579,12 +1576,12 @@ version = "1.1.6+0"
 [[deps.nghttp2_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "8e850ede-7688-5339-a07c-302acd2aaf8d"
-version = "1.52.0+1"
+version = "1.70.0+0"
 
 [[deps.p7zip_jll]]
-deps = ["Artifacts", "Libdl"]
+deps = ["Artifacts", "CompilerSupportLibraries_jll", "Libdl"]
 uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
-version = "17.4.0+2"
+version = "17.8.3+0"
 
 [[deps.x264_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
